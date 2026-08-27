@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Swap — Skill Swap Platform Prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
+:root{
+  --violet:#6C4AB6;
+  --violet-dark:#4E3486;
+  --lime:#C4E86B;
+  --lime-dark:#9BC13F;
+  --coral:#F0715A;
+  --cream:#FAF7F2;
+  --paper:#FFFFFF;
+  --ink:#241F33;
+  --slate:#847C93;
+  --line:#E7E1D9;
+}
+
+*{ box-sizing:border-box; }
+html,body{
+  margin:0; padding:0;
+  background:
+    radial-gradient(circle at 20% 0%, #4E3486 0%, transparent 45%),
+    #201A30;
+  font-family:'Inter', sans-serif;
+  color:var(--ink);
+  min-height:100vh;
+}
+
+.stage{ display:flex; flex-direction:column; align-items:center; padding:48px 16px 64px; min-height:100vh; }
+
+.stage-header{ text-align:center; color:var(--cream); max-width:640px; margin-bottom:34px; }
+.eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--lime); margin-bottom:10px; }
+.stage-header h1{ font-family:'Poppins', sans-serif; font-weight:800; font-size:clamp(30px,4.4vw,44px); margin:0 0 12px; letter-spacing:-0.01em; }
+.stage-header p{ font-size:14.5px; line-height:1.6; color:#CBC3DC; margin:0; }
+
+.tabs{ display:flex; gap:6px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.14); padding:6px; border-radius:100px; margin-bottom:36px; flex-wrap:wrap; justify-content:center; }
+.tab-btn{ font-family:'Inter'; font-size:13px; font-weight:600; color:#CBC3DC; background:transparent; border:none; padding:9px 16px; border-radius:100px; cursor:pointer; transition:all .25s ease; white-space:nowrap; }
+.tab-btn:hover{ color:#fff; }
+.tab-btn.active{ background:var(--lime); color:var(--violet-dark); box-shadow:0 4px 14px rgba(196,232,107,0.35); }
+.tab-btn .num{ font-family:'IBM Plex Mono', monospace; opacity:.6; margin-right:6px; }
+
+.phone{ width:360px; height:740px; background:#201A30; border-radius:46px; padding:14px; box-shadow:0 30px 60px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06); position:relative; }
+.screen{ width:100%; height:100%; background:var(--cream); border-radius:32px; overflow:hidden; position:relative; display:none; flex-direction:column; }
+.screen.active{ display:flex; }
+.notch{ position:absolute; top:14px; left:50%; transform:translateX(-50%); width:120px; height:22px; background:#201A30; border-radius:100px; z-index:50; }
+
+.statusbar{ padding:20px 24px 4px; display:flex; justify-content:space-between; font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--slate); }
+.app-top{ padding:6px 20px 12px; display:flex; align-items:center; justify-content:space-between; }
+.wordmark{ font-family:'Poppins', sans-serif; font-weight:800; font-size:19px; color:var(--ink); display:flex; align-items:center; gap:7px; }
+.wordmark .icon{ width:20px; height:20px; border-radius:6px; background:var(--violet); position:relative; }
+.wordmark .icon::after{ content:'⇄'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px; }
+.avatar-me{ width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--violet),var(--coral)); border:2px solid #fff; }
+
+.scroll{ flex:1; overflow-y:auto; padding:0 20px 100px; }
+.scroll::-webkit-scrollbar{ display:none; }
+
+.section-label{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--slate); margin:16px 0 10px; }
+
+/* Wallet banner */
+.wallet-banner{ display:flex; align-items:center; gap:12px; background:var(--violet); color:#fff; border-radius:16px; padding:14px 16px; margin-bottom:16px; }
+.wallet-banner .coin{ width:38px; height:38px; border-radius:50%; background:var(--lime); color:var(--violet-dark); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono'; font-weight:700; font-size:13px; flex-shrink:0; }
+.wallet-banner .t strong{ display:block; font-size:14px; }
+.wallet-banner .t span{ font-size:10.5px; color:#D9CFEE; font-family:'IBM Plex Mono'; }
+
+.filter-row{ display:flex; gap:8px; margin-bottom:16px; overflow-x:auto; }
+.filter-pill{ font-family:'IBM Plex Mono'; font-size:11px; font-weight:600; background:#fff; border:1.5px solid var(--line); border-radius:100px; padding:7px 13px; white-space:nowrap; }
+.filter-pill.on{ background:var(--ink); color:#fff; border-color:var(--ink); }
+
+/* Skill offer cards */
+.skill-card{ background:#fff; border:1px solid var(--line); border-radius:18px; padding:15px 16px; margin-bottom:12px; cursor:pointer; transition:transform .15s ease; }
+.skill-card:hover{ transform:translateY(-2px); }
+.skill-top{ display:flex; align-items:center; gap:11px; margin-bottom:10px; }
+.skill-top .av{ width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,var(--violet),var(--coral)); flex-shrink:0; }
+.skill-top .who strong{ display:block; font-size:13.5px; }
+.skill-top .who span{ font-size:10.5px; color:var(--slate); font-family:'IBM Plex Mono'; }
+.skill-top .rating{ margin-left:auto; font-family:'IBM Plex Mono'; font-size:11px; font-weight:700; color:var(--coral); }
+
+.offer-want-row{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.ow-tag{ flex:1; font-size:12px; padding:8px 11px; border-radius:11px; font-weight:600; }
+.ow-tag.offers{ background:#EFE9F8; color:var(--violet-dark); }
+.ow-tag.wants{ background:#F1F8E0; color:var(--lime-dark); }
+.ow-tag .k{ font-family:'IBM Plex Mono'; font-size:8.5px; text-transform:uppercase; display:block; margin-bottom:2px; opacity:.7; }
+.swap-icon{ font-size:14px; color:var(--slate); }
+
+/* Discover home swap-card */
+.fab{ position:absolute; bottom:26px; right:22px; width:56px; height:56px; border-radius:50%; background:var(--coral); color:#fff; border:none; font-size:24px; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 24px -6px rgba(240,113,90,0.5); cursor:pointer; }
+
+.tabbar{ position:absolute; bottom:0; left:0; right:0; background:rgba(255,255,255,0.92); backdrop-filter:blur(6px); border-top:1px solid var(--line); display:flex; justify-content:space-around; padding:12px 10px 16px; }
+.tabbar .ti{ display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10px; color:var(--slate); font-family:'IBM Plex Mono', monospace; }
+.tabbar .ti.on{ color:var(--violet); }
+
+/* Skill profile */
+.profile-hero{ text-align:center; padding:12px 0 18px; }
+.profile-hero .av-big{ width:76px; height:76px; border-radius:50%; margin:0 auto 12px; background:linear-gradient(135deg,var(--violet),var(--coral)); border:3px solid #fff; box-shadow:0 6px 18px rgba(0,0,0,0.1); }
+.profile-hero .nm{ font-family:'Poppins'; font-weight:800; font-size:19px; }
+.profile-hero .loc{ font-size:11.5px; color:var(--slate); font-family:'IBM Plex Mono'; margin-top:2px; }
+.profile-hero .rate{ font-family:'IBM Plex Mono'; font-size:12px; color:var(--coral); font-weight:700; margin-top:6px; }
+
+.chip-block{ margin-bottom:16px; }
+.chip-block .lbl{ font-family:'IBM Plex Mono'; font-size:10.5px; text-transform:uppercase; color:var(--slate); margin-bottom:8px; letter-spacing:.05em; }
+.chip-row{ display:flex; flex-wrap:wrap; gap:8px; }
+.skill-chip{ font-size:12px; font-weight:600; padding:8px 13px; border-radius:100px; }
+.skill-chip.offer{ background:#EFE9F8; color:var(--violet-dark); }
+.skill-chip.want{ background:#F1F8E0; color:var(--lime-dark); }
+
+.avail-row{ display:flex; align-items:center; gap:12px; background:#fff; border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin-bottom:10px; }
+.avail-row .ic{ width:34px; height:34px; border-radius:10px; background:var(--cream); display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+.avail-row .txt strong{ display:block; font-size:12.5px; }
+.avail-row .txt span{ font-size:11px; color:var(--slate); }
+
+.primary-btn{ width:100%; background:var(--violet); color:#fff; border:none; border-radius:16px; padding:15px; font-family:'Inter'; font-weight:700; font-size:14.5px; margin-top:14px; cursor:pointer; }
+.primary-btn.coral{ background:var(--coral); }
+.primary-btn.dark{ background:var(--ink); }
+
+/* Trade match — signature element */
+.match-hero{ background:linear-gradient(150deg,var(--violet),var(--violet-dark)); color:#fff; border-radius:20px; padding:20px 18px; margin-bottom:16px; text-align:center; }
+.match-hero .lbl{ font-family:'IBM Plex Mono'; font-size:10.5px; color:#D9CFEE; text-transform:uppercase; margin-bottom:14px; }
+
+.swap-visual{ display:flex; align-items:center; justify-content:center; gap:14px; }
+.swap-side{ flex:1; text-align:center; }
+.swap-side .av{ width:48px; height:48px; border-radius:50%; margin:0 auto 8px; border:2.5px solid rgba(255,255,255,0.4); }
+.swap-side .nm{ font-family:'Poppins'; font-weight:700; font-size:13px; margin-bottom:4px; }
+.swap-side .skill{ font-family:'IBM Plex Mono'; font-size:10.5px; background:rgba(255,255,255,0.15); padding:4px 9px; border-radius:100px; display:inline-block; }
+.swap-center{ font-size:22px; color:var(--lime); }
+
+.session-card{ background:#fff; border:1px solid var(--line); border-radius:16px; padding:15px 16px; margin-bottom:14px; }
+.session-card .row{ display:flex; justify-content:space-between; padding:8px 0; font-size:12.5px; border-bottom:1px solid var(--line); }
+.session-card .row:last-child{ border-bottom:none; }
+.session-card .row .k{ color:var(--slate); }
+.session-card .row .v{ font-weight:700; }
+
+.format-row{ display:flex; gap:8px; margin-bottom:16px; }
+.format-opt{ flex:1; text-align:center; background:#fff; border:1.5px solid var(--line); border-radius:12px; padding:11px 6px; font-size:12px; font-weight:700; cursor:pointer; }
+.format-opt.selected{ background:var(--lime); border-color:var(--lime); color:var(--violet-dark); }
+
+/* Session & rating */
+.complete-badge{ display:flex; align-items:center; gap:8px; background:#F1F8E0; color:var(--lime-dark); border-radius:100px; padding:9px 16px; width:fit-content; margin:0 auto 18px; font-size:12px; font-weight:700; }
+
+.credit-card{ background:#fff; border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:16px; text-align:center; }
+.credit-card .v{ font-family:'Poppins'; font-weight:800; font-size:28px; color:var(--violet); }
+.credit-card .l{ font-size:11.5px; color:var(--slate); margin-top:2px; }
+
+.star-row{ display:flex; justify-content:center; gap:8px; margin:16px 0; }
+.star{ font-size:26px; color:var(--line); }
+.star.on{ color:var(--coral); }
+
+.review-box{ width:100%; background:#fff; border:1.5px solid var(--line); border-radius:14px; padding:13px 14px; font-family:'Inter'; font-size:13px; height:80px; margin-bottom:14px; }
+
+.badge-row{ display:flex; gap:10px; }
+.badge-card{ flex:1; background:#fff; border:1px solid var(--line); border-radius:14px; padding:12px 8px; text-align:center; }
+.badge-card .ic{ font-size:20px; margin-bottom:5px; }
+.badge-card .l{ font-size:10px; font-weight:700; }
+
+.notes{ max-width:360px; margin-top:22px; color:#CBC3DC; font-size:12.5px; line-height:1.6; text-align:center; min-height:40px; }
+.notes b{ color:#fff; }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="stage-header">
+    <div class="eyebrow">Grad Project Prototype</div>
+    <h1>Swap</h1>
+    <p>No money changes hands — trade what you're good at for what you want to learn. Guitar lessons for a code review. Baking for a logo. Swap matches people directly, or banks the hours for later.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-screen="discover" onclick="showScreen('discover', this)"><span class="num">01</span>Discover</button>
+    <button class="tab-btn" data-screen="profile" onclick="showScreen('profile', this)"><span class="num">02</span>Skill Profile</button>
+    <button class="tab-btn" data-screen="match" onclick="showScreen('match', this)"><span class="num">03</span>Trade Match</button>
+    <button class="tab-btn" data-screen="rate" onclick="showScreen('rate', this)"><span class="num">04</span>Session & Rating</button>
+  </div>
+
+  <div class="phone">
+    <div class="notch"></div>
+
+    <!-- SCREEN 1: DISCOVER -->
+    <div class="screen active" id="screen-discover">
+      <div class="statusbar"><span>9:41</span><span>SWAP</span></div>
+      <div class="app-top">
+        <div class="wordmark"><span class="icon"></span>Swap</div>
+        <div class="avatar-me"></div>
+      </div>
+      <div class="scroll">
+        <div class="wallet-banner">
+          <div class="coin">6h</div>
+          <div class="t"><strong>6 skill hours banked</strong><span>EARNED FROM 3 SESSIONS TAUGHT</span></div>
+        </div>
+
+        <div class="filter-row">
+          <div class="filter-pill on">Near me</div>
+          <div class="filter-pill">Coding</div>
+          <div class="filter-pill">Music</div>
+          <div class="filter-pill">Language</div>
+        </div>
+
+        <div class="section-label">Matches for what you want</div>
+
+        <div class="skill-card" onclick="showScreenById('profile')">
+          <div class="skill-top"><div class="av"></div><div class="who"><strong>Layla Mansour</strong><span>4.9★ · 12 swaps completed</span></div></div>
+          <div class="offer-want-row">
+            <div class="ow-tag offers"><span class="k">Offers</span>Guitar lessons</div>
+            <span class="swap-icon">⇄</span>
+            <div class="ow-tag wants"><span class="k">Wants</span>Help with Python</div>
+          </div>
+        </div>
+
+        <div class="skill-card">
+          <div class="skill-top"><div class="av"></div><div class="who"><strong>Omar Fathy</strong><span>4.7★ · 8 swaps completed</span></div></div>
+          <div class="offer-want-row">
+            <div class="ow-tag offers"><span class="k">Offers</span>Home baking</div>
+            <span class="swap-icon">⇄</span>
+            <div class="ow-tag wants"><span class="k">Wants</span>Logo design</div>
+          </div>
+        </div>
+
+        <div class="section-label">Popular on Swap</div>
+        <div class="skill-card">
+          <div class="skill-top"><div class="av"></div><div class="who"><strong>Nourhan Adel</strong><span>5.0★ · 20 swaps completed</span></div></div>
+          <div class="offer-want-row">
+            <div class="ow-tag offers"><span class="k">Offers</span>Spanish conversation</div>
+            <span class="swap-icon">⇄</span>
+            <div class="ow-tag wants"><span class="k">Wants</span>Photo editing</div>
+          </div>
+        </div>
+      </div>
+      <button class="fab" onclick="showScreenById('profile')">＋</button>
+      <div class="tabbar">
+        <div class="ti on">🔍<span>Discover</span></div>
+        <div class="ti">⇄<span>My Swaps</span></div>
+        <div class="ti">💬<span>Messages</span></div>
+        <div class="ti">👤<span>Profile</span></div>
+      </div>
+    </div>
+
+    <!-- SCREEN 2: SKILL PROFILE -->
+    <div class="screen" id="screen-profile">
+      <div class="statusbar"><span>9:41</span><span>PROFILE</span></div>
+      <div class="app-top"><div class="wordmark" style="font-size:16px;">← Layla's profile</div></div>
+      <div class="scroll">
+        <div class="profile-hero">
+          <div class="av-big"></div>
+          <div class="nm">Layla Mansour</div>
+          <div class="loc">Zamalek · usually replies in a few hours</div>
+          <div class="rate">4.9★ · 12 swaps completed</div>
+        </div>
+
+        <div class="chip-block">
+          <div class="lbl">Offers</div>
+          <div class="chip-row">
+            <span class="skill-chip offer">Guitar lessons</span>
+            <span class="skill-chip offer">Music theory basics</span>
+          </div>
+        </div>
+
+        <div class="chip-block">
+          <div class="lbl">Wants</div>
+          <div class="chip-row">
+            <span class="skill-chip want">Python help</span>
+            <span class="skill-chip want">Resume review</span>
+          </div>
+        </div>
+
+        <div class="section-label">Availability</div>
+        <div class="avail-row"><div class="ic">📅</div><div class="txt"><strong>Weekday evenings</strong><span>Tue & Thu after 6 PM usually work best</span></div></div>
+        <div class="avail-row"><div class="ic">💻</div><div class="txt"><strong>In-person or video call</strong><span>Prefers video for a first session</span></div></div>
+
+        <button class="primary-btn" onclick="showScreenById('match')">Propose a swap →</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: TRADE MATCH -->
+    <div class="screen" id="screen-match">
+      <div class="statusbar"><span>9:41</span><span>PROPOSE SWAP</span></div>
+      <div class="app-top"><div class="wordmark" style="font-size:16px;">← Confirm your trade</div></div>
+      <div class="scroll">
+        <div class="match-hero">
+          <div class="lbl">Your proposed swap</div>
+          <div class="swap-visual">
+            <div class="swap-side"><div class="av" style="background:linear-gradient(135deg,var(--lime),var(--violet));"></div><div class="nm">You</div><div class="skill">Python help</div></div>
+            <div class="swap-center">⇄</div>
+            <div class="swap-side"><div class="av" style="background:linear-gradient(135deg,var(--coral),var(--violet));"></div><div class="nm">Layla</div><div class="skill">Guitar lesson</div></div>
+          </div>
+        </div>
+
+        <div class="section-label">Session format</div>
+        <div class="format-row">
+          <div class="format-opt selected">Video call</div>
+          <div class="format-opt">In person</div>
+          <div class="format-opt">Async / chat</div>
+        </div>
+
+        <div class="session-card">
+          <div class="row"><span class="k">Duration</span><span class="v">1 hour each way</span></div>
+          <div class="row"><span class="k">Proposed time</span><span class="v">Thu, 7:00 PM</span></div>
+          <div class="row"><span class="k">Skill hours used</span><span class="v">1h from your wallet (if unmatched)</span></div>
+        </div>
+
+        <button class="primary-btn" onclick="showScreenById('rate')">Send swap proposal →</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 4: SESSION & RATING -->
+    <div class="screen" id="screen-rate">
+      <div class="statusbar"><span>9:41</span><span>COMPLETE</span></div>
+      <div class="app-top"><div class="wordmark" style="font-size:16px;">← Session complete</div></div>
+      <div class="scroll">
+        <div class="complete-badge">✓ Swap completed with Layla</div>
+
+        <div class="credit-card">
+          <div class="v">+1h</div>
+          <div class="l">Skill hour credited — Python help given</div>
+        </div>
+
+        <div class="section-label">Rate your swap</div>
+        <div class="star-row">
+          <span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star">★</span>
+        </div>
+        <textarea class="review-box" placeholder="Layla was patient and clear explaining chord shapes — great first session.">Layla was patient and clear explaining chord shapes — great first session.</textarea>
+
+        <button class="primary-btn coral">Submit review</button>
+
+        <div class="section-label">Your progress</div>
+        <div class="badge-row">
+          <div class="badge-card"><div class="ic">🎸</div><div class="l">First Trade</div></div>
+          <div class="badge-card"><div class="ic">🔥</div><div class="l">3-Swap Streak</div></div>
+          <div class="badge-card"><div class="ic">🌟</div><div class="l">Top Rated</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes" id="notes">
+    <b>Discover</b> — every offer card shows both sides of a potential trade at once, so matching feels like finding a fit, not scrolling a menu of services.
+  </div>
+</div>
+
+<script>
+const notesMap = {
+  discover: "<b>Discover</b> — every offer card shows both sides of a potential trade at once (what they offer, what they want), so matching feels like finding a fit rather than scrolling a menu of services. The wallet banner surfaces banked hours from past sessions taught.",
+  profile: "<b>Skill Profile</b> — offered and wanted skills are visually distinct colors throughout the app, so at a glance you can tell which side of any chip you're looking at without reading it.",
+  match: "<b>Trade Match</b> — the signature element: a symmetric swap card showing exactly what crosses the exchange, in both directions, before anyone commits — no ambiguity about who's giving what.",
+  rate: "<b>Session &amp; Rating</b> — completing a swap credits skill hours immediately and visibly, reinforcing the time-banking model as a real, running balance rather than an abstract point system."
+};
+
+function showScreen(id, btn){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('notes').innerHTML = notesMap[id];
+}
+
+function showScreenById(id){
+  const btn = document.querySelector('.tab-btn[data-screen="' + id + '"]');
+  showScreen(id, btn);
+}
+</script>
+
+</body>
+</html>
